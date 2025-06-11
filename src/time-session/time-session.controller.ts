@@ -28,6 +28,11 @@ export class TimeSessionController {
     return this.timeSessionService.create(createTimeSessionDto);
   }
 
+  @Get('/test')
+  async getAuthStatus() {
+    return { message: 'Auth service is running' };
+  }
+
   @Get()
   async findAll(
     @Req() request: Request,

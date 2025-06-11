@@ -1,4 +1,4 @@
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable, LoggerService, Module } from '@nestjs/common';
 import * as winston from 'winston';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class MyLogger implements LoggerService {
         winston.format.timestamp(),
         winston.format.printf(({ level, message, timestamp }) => {
           return `[${timestamp as string}] ${level.toUpperCase()}: ${message as string}`;
-        })
+        }),
       ),
       transports,
     });
@@ -41,3 +41,9 @@ export class MyLogger implements LoggerService {
     this.logger.warn(message);
   }
 }
+
+@Module({
+  providers: [MyLogger],
+  exports: [MyLogger],
+})
+export class LoggerModule {}

@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { BadRequestException } from '../excecption/bad-request.exception';
 import { MyLogger } from '../lib/logger';
 import { InternalServerException } from '../excecption/internal-server.exception';
+import UpdateTimeSessionDto from './dto/update-time-session.dto';
 
 @Injectable()
 export class TimeSessionService {
@@ -116,6 +117,41 @@ export class TimeSessionService {
         throw error; // Rethrow specific exceptions
       }
       throw new InternalServerException('Failed to end time session');
+    }
+  }
+
+  async updateTimeSession(
+    id_user: string,
+    id: string,
+    data: UpdateTimeSessionDto,
+  ): Promise<ResponseModel<null>> {
+    try {
+      const updatedSession = await this.timeSessionModel
+        .findOneAndUpdate(
+          { _id: id, id_user },
+          { $set: data },
+          { new: true, runValidators: true },
+        )
+        .exec();
+
+      if (!updatedSession) {
+        throw new BadRequestException(
+          'Time session not found or not owned by user',
+        );
+      }
+
+      return {
+        success: true,
+        data: null,
+        message: 'Time session updated successfully',
+        timestamp: new Date(),
+      };
+    } catch (error) {
+      this.logger.error(`Error updating time session: ${error.message}`);
+      if (error instanceof BadRequestException) {
+        throw error; // Rethrow specific exceptions
+      }
+      throw new InternalServerException('Failed to update time session');
     }
   }
 }

@@ -10,13 +10,19 @@ import * as bcrypt from 'bcrypt';
 import Helper from '../helper';
 import RegisterUserDto from './dto/register-user.dto';
 import { InternalServerException } from '../excecption/internal-server.exception';
+import { OAuth2Client } from 'google-auth-library';
+import LoginGoogleUserDto from './dto/login-google-user.dto';
 
 @Injectable()
 export class AuthService {
+  private client: OAuth2Client;
+
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private logger: MyLogger,
-  ) {}
+  ) {
+    this.client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
 
   async login(
     data: LoginUserDto,
@@ -43,6 +49,51 @@ export class AuthService {
     } catch (error) {
       this.logger.error('Error during user login', error);
       throw new BadRequestException('Invalid email or password');
+    }
+  }
+
+  async loginWithGoogle(
+    data: LoginGoogleUserDto,
+  ): Promise<ResponseModel<null | { token: string }>> {
+    try {
+      const ticket = await this.client.verifyIdToken({
+        idToken: data.credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      if (!payload) {
+        throw new BadRequestException('Invalid Google token');
+      }
+
+      if (!payload.email_verified) {
+        throw new BadRequestException('Email not verified');
+      }
+
+      if (!payload.email || !payload.name) {
+        throw new BadRequestException('Email and name are required');
+      }
+
+      if (payload.aud !== process.env.GOOGLE_CLIENT_ID) {
+        throw new BadRequestException('Invalid Google token audience');
+      }
+
+      let user = await this.userModel.findOne({ email: payload.email }).exec();
+      if (!user) {
+        throw new BadRequestException('Invalid Google token');
+      }
+      const jwtToken = Helper.generateToken(user._id.toString());
+      return new ResponseModel<{ token: string }>(
+        true,
+        { token: jwtToken },
+        new Date(),
+        'Login with Google successful',
+      );
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error; // Re-throw known exceptions
+      }
+      this.logger.error('Error during Google login', error);
+      throw new BadRequestException('Invalid Google token');
     }
   }
 

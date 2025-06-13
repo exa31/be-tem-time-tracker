@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Put, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
 import { TimeSessionService } from './time-session.service';
 import { TimeSession } from './schema/time-session.schema';
 import ResponseModel from '../model/response.model';
 import { MyLogger } from '../lib/logger';
 import { Request } from 'express';
+import UpdateTimeSessionDto from './dto/update-time-session.dto';
 
 @Controller('time-sessions')
 export class TimeSessionController {
@@ -35,5 +45,18 @@ export class TimeSessionController {
     @Req() request: Request,
   ): Promise<ResponseModel<TimeSession | null>> {
     return await this.timeSessionService.getActiveTimeSession(request.id_user);
+  }
+
+  @Patch(':id/update')
+  async updateTimeSession(
+    @Req() request: Request,
+    @Body() data: UpdateTimeSessionDto,
+    @Param('id') id: string,
+  ): Promise<ResponseModel<null>> {
+    return await this.timeSessionService.updateTimeSession(
+      request.id_user,
+      id,
+      data,
+    );
   }
 }

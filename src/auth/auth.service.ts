@@ -6,9 +6,10 @@ import { MyLogger } from '../lib/logger';
 import LoginUserDto from './dto/login-user.dto';
 import ResponseModel from '../model/response.model';
 import { BadRequestException } from '../excecption/bad-request.exception';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import Helper from '../helper';
 import RegisterUserDto from './dto/register-user.dto';
+import { InternalServerException } from '../excecption/internal-server.exception';
 
 @Injectable()
 export class AuthService {
@@ -49,16 +50,15 @@ export class AuthService {
     data: RegisterUserDto,
   ): Promise<ResponseModel<null | { token: string }>> {
     try {
-      const existingUser = await this.userModel
-        .findOne({ email: data.email })
-        .exec();
-      if (existingUser) {
-        throw new BadRequestException('Email already exists');
-      }
       const hashedPassword = await bcrypt.hash(data.password, 10);
+      this.logger.log(
+        'Registering user with email: ' + data.email + data.password,
+      );
+
       const newUser = new this.userModel({
         email: data.email,
         password: hashedPassword,
+        name: data.name,
       });
       await newUser.save();
       const token = Helper.generateToken(newUser._id.toString());
@@ -70,10 +70,13 @@ export class AuthService {
       );
     } catch (error) {
       this.logger.error('Error during user registration', error);
+      if (error.code === 11000) {
+        throw new BadRequestException('Email already exists');
+      }
       if (error instanceof BadRequestException) {
         throw error; // Re-throw known exceptions
       }
-      throw new BadRequestException('Registration failed');
+      throw new InternalServerException('Registration failed');
     }
   }
 }

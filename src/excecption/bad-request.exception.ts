@@ -5,7 +5,7 @@ export class BadRequestException<T> extends HttpException {
     super(
       {
         success: false,
-        data: data,
+        data: data || null,
         timestamp: new Date(),
         message,
       },

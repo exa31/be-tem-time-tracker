@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, Min } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 
 class RegisterUserDto {
   @IsNotEmpty()
@@ -6,11 +6,11 @@ class RegisterUserDto {
   email: string;
 
   @IsNotEmpty()
-  @Min(8)
+  @MinLength(8)
   password: string;
 
   @IsNotEmpty()
-  @Min(3)
+  @MinLength(3)
   name: string;
 }
 

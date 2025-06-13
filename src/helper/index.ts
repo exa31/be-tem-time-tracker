@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import VarEnv from '../config/varEnv';
 
 class Helper {
@@ -13,6 +13,7 @@ class Helper {
 
   public static generateToken(userId: string): string {
     const payload = { id_user: userId };
+    console.log('Generating token for user:', VarEnv.secret_jwt);
     return jwt.sign(payload, VarEnv.secret_jwt as string, {
       expiresIn: '1d', // Token will expire in 1 day
     });

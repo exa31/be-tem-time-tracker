@@ -1,36 +1,26 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Req } from '@nestjs/common';
 import { TimeSessionService } from './time-session.service';
-import { CreateTimeSessionDto } from './dto/create-time-session.dto';
-import { UpdateTimeSessionDto } from './dto/update-time-session.dto';
 import { TimeSession } from './schema/time-session.schema';
 import ResponseModel from '../model/response.model';
 import { MyLogger } from '../lib/logger';
 import { Request } from 'express';
 
-@Controller('time-session')
+@Controller('time-sessions')
 export class TimeSessionController {
   constructor(
     private readonly timeSessionService: TimeSessionService,
     private logger: MyLogger,
   ) {}
 
-  @Post()
-  create(@Body() createTimeSessionDto: CreateTimeSessionDto) {
-    return this.timeSessionService.create(createTimeSessionDto);
+  @Post('start')
+  create(@Req() request: Request) {
+    console.log(request.id_user);
+    return this.timeSessionService.startTimeSession(request.id_user);
   }
 
-  @Get('/test')
-  async getAuthStatus() {
-    return { message: 'Auth service is running' };
+  @Put('stop')
+  async stopTimeSession(@Req() request: Request): Promise<ResponseModel<null>> {
+    return await this.timeSessionService.stopTimeSession(request.id_user);
   }
 
   @Get()
@@ -40,21 +30,10 @@ export class TimeSessionController {
     return await this.timeSessionService.getAllTimeSessions(request.id_user);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.timeSessionService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateTimeSessionDto: UpdateTimeSessionDto,
-  ) {
-    return this.timeSessionService.update(+id, updateTimeSessionDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.timeSessionService.remove(+id);
+  @Get('active')
+  async getActiveTimeSession(
+    @Req() request: Request,
+  ): Promise<ResponseModel<TimeSession | null>> {
+    return await this.timeSessionService.getActiveTimeSession(request.id_user);
   }
 }

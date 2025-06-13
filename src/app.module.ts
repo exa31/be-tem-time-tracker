@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -32,6 +37,14 @@ import { RequestLoggerMiddleware } from './middleware/request-logger.middleware'
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(RequestLoggerMiddleware).forRoutes('*api');
-    consumer.apply(IsAuth).exclude('*api/v1/auth').forRoutes('*api');
+    consumer
+      .apply(IsAuth)
+      .exclude(
+        { path: 'v1/auth', method: RequestMethod.ALL },
+        { path: 'v1/auth/(.*)', method: RequestMethod.ALL },
+      )
+      .forRoutes(
+        { path: 'v1/{*splat}', method: RequestMethod.ALL }, // ✅ pakai wildcard sesuai docs
+      );
   }
 }

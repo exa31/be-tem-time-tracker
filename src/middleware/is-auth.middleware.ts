@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import Helper from '../helper';
 import VarEnv from '../config/varEnv';
 import { NotAuthorizeException } from '../excecption/not-authorize.exception';

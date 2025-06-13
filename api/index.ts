@@ -4,7 +4,7 @@ import { AppModule } from '../src/app.module';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { BadRequestException } from '../src/excecption/bad-request.exception';
-import * as express from 'express';
+import express from 'express';
 
 const server = express();
 let cachedApp: express.Express | null = null;
